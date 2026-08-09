@@ -1,5 +1,6 @@
 use sx2rust::enums::{ExpType, SxErrorType};
-use sx2rust::parsers::{IntegerParser, SimpleExpressionParser, SxParser};
+use sx2rust::parsers::expressions_parsers::{IntegerParser, SimpleExpressionParser};
+use sx2rust::parsers::SxParser;
 use sx2rust::text::Text;
 
 #[test]

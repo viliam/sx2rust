@@ -1,7 +1,6 @@
 use super::Text;
-use crate::enums::{
-    ReservedWordEnum, ReservedWordGroup, SymbolEnum, SymbolGroupEnum,
-};
+use crate::enums::ReservedWordEnum;
+use crate::words::symbol::{BracketKind, OperatorGroup, SeparatorKind, SymbolKind};
 
 impl Text {
     pub(crate) fn starts_with_int(&mut self) -> bool {
@@ -20,29 +19,29 @@ impl Text {
         self.next_char()
             .map(|c| {
                 let s = c.to_string();
-                SymbolGroupEnum::OpComparison.is_prefix(&s)
-                    || SymbolGroupEnum::OpArith.is_prefix(&s)
-                    || SymbolGroupEnum::OpAssignment.is_prefix(&s)
-                    || SymbolGroupEnum::OpBool.is_prefix(&s)
+                OperatorGroup::Comparison.is_prefix(&s)
+                    || OperatorGroup::Arithmetic.is_prefix(&s)
+                    || OperatorGroup::Assignment.is_prefix(&s)
+                    || OperatorGroup::Boolean.is_prefix(&s)
             })
             .unwrap_or(false)
     }
 
     pub(crate) fn starts_with_bracket_open(&mut self) -> bool {
         self.next_char()
-            .map(|c| SymbolEnum::BracketNormOpen.is_prefix(&c.to_string()))
+            .map(|c| BracketKind::RoundOpen.is_prefix(&*c.to_string()))
             .unwrap_or(false)
     }
 
     pub(crate) fn starts_with_bracket_closed(&mut self) -> bool {
         self.next_char()
-            .map(|c| SymbolEnum::BracketNormClose.is_prefix(&c.to_string()))
+            .map(|c| BracketKind::RoundClose.is_prefix(&c.to_string()))
             .unwrap_or(false)
     }
 
     pub(crate) fn starts_with_comma(&mut self) -> bool {
         self.next_char()
-            .map(|c| SymbolGroupEnum::Commas.is_prefix(&c.to_string()))
+            .map(|c| SeparatorKind::Comma.is_prefix(&c.to_string()))
             .unwrap_or(false)
     }
 

@@ -1,5 +1,6 @@
 use sx2rust::enums::ExpType;
-use sx2rust::parsers::{ExpressionParser, SxParser};
+use sx2rust::parsers::expressions_parsers::ExpressionParser;
+use sx2rust::parsers::SxParser;
 use sx2rust::text::Text;
 
 #[test]

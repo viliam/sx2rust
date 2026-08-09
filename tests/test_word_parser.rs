@@ -1,5 +1,6 @@
 use sx2rust::enums::SxErrorType;
-use sx2rust::parsers::{SxParser, WordParser};
+use sx2rust::parsers::{SxParser};
+use sx2rust::parsers::word_parsers::WordParser;
 use sx2rust::position::Position;
 use sx2rust::text::Text;
 

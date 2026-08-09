@@ -140,7 +140,7 @@ impl ExpressionABC for Expression {
     fn exp_type(&self) -> Result<ExpType, SxError> {
         let t1 = self.v1.exp_type()?;
         let t2 = self.v2.exp_type()?;
-        let top = self.op.exp_type()?;
+        let top = self.op.exp_type();
 
         let mut types = vec![t1, t2, top];
         types.sort_by_key(|t| t.priority());
