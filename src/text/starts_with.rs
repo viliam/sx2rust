@@ -59,20 +59,4 @@ impl Text {
         self.position = pos;
         res
     }
-
-    pub(crate) fn starts_with_data_type(&mut self) -> bool {
-        let pos = self.position;
-        let res = if !self.starts_with_letter() {
-            false
-        } else {
-            let word = self.peek_word();
-            if let Ok(rw) = word.parse::<ReservedWordEnum>() {
-                ReservedWordGroup::is_data_type(rw)
-            } else {
-                false
-            }
-        };
-        self.position = pos;
-        res
-    }
 }
