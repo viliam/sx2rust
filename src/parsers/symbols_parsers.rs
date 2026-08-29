@@ -7,22 +7,35 @@ use crate::words::symbol::{Bracket, BracketKind, Dot, DotKind, Operator, Operato
 
 pub type ParseResult<T> = Result<T, SxError>;
 
+const BRACKET_KINDS: &[BracketKind] = &[
+    BracketKind::RoundOpen,
+    BracketKind::RoundClose,
+    BracketKind::SquareOpen,
+    BracketKind::SquareClose,
+    BracketKind::CurlyOpen,
+    BracketKind::CurlyClose,
+];
+
+const COMMA_KINDS: &[SeparatorKind] = &[SeparatorKind::Comma];
+
+const DOT_KINDS: &[DotKind] = &[DotKind::Dot];
+
 struct SymbolParser<T, K, F>
 where
-    K: SymbolKind + Copy + Eq,
+    K: SymbolKind + Copy + 'static,
     F: Fn(Position, K) -> T,
 {
-    symbols: Vec<K>,
+    symbols: &'static [K],
     exception_type: SxErrorType,
     create: F,
 }
 
 impl<T, K, F> SymbolParser<T, K, F>
 where
-    K: SymbolKind + Copy + Eq,
+    K: SymbolKind + Copy + 'static,
     F: Fn(Position, K) -> T,
 {
-    fn new(symbols: Vec<K>, exception_type: SxErrorType, create: F) -> Self {
+    fn new(symbols: &'static [K], exception_type: SxErrorType, create: F) -> Self {
         Self {
             symbols,
             exception_type,
@@ -53,7 +66,7 @@ where
 
 impl<T, K, F> SxParser<T> for SymbolParser<T, K, F>
 where
-    K: SymbolKind + Copy + Eq,
+    K: SymbolKind + Copy + 'static,
     F: Fn(Position, K) -> T,
 {
     fn read(&self, text: &mut Text) -> ParseResult<T> {
@@ -77,14 +90,7 @@ pub struct BracketParser;
 impl SxParser<Bracket> for BracketParser {
     fn read(&self, text: &mut Text) -> ParseResult<Bracket> {
         let parser = SymbolParser::new(
-            vec![
-                BracketKind::RoundOpen,
-                BracketKind::RoundClose,
-                BracketKind::SquareOpen,
-                BracketKind::SquareClose,
-                BracketKind::CurlyOpen,
-                BracketKind::CurlyClose,
-            ],
+            BRACKET_KINDS,
             SxErrorType::ExpectedBracket,
             |position, kind| match kind {
                 BracketKind::RoundOpen
@@ -110,7 +116,7 @@ pub struct CommaParser;
 impl SxParser<Separator> for CommaParser {
     fn read(&self, text: &mut Text) -> ParseResult<Separator> {
         let parser = SymbolParser::new(
-            vec![SeparatorKind::Comma],
+            COMMA_KINDS,
             SxErrorType::ExpectedComma,
             Separator::new,
         );
@@ -124,7 +130,7 @@ pub struct DotParser;
 impl SxParser<Dot> for DotParser {
     fn read(&self, text: &mut Text) -> ParseResult<Dot> {
         let parser = SymbolParser::new(
-            vec![DotKind::Dot],
+            DOT_KINDS,
             SxErrorType::ExpectedDot,
             Dot::new,
         );
@@ -138,7 +144,7 @@ pub struct OperatorExpressionParser;
 impl SxParser<Operator> for OperatorExpressionParser {
     fn read(&self, text: &mut Text) -> ParseResult<Operator> {
         let parser = SymbolParser::new(
-            OperatorKind::all().to_vec(),
+            OperatorKind::all(),
             SxErrorType::ExpectedOperator,
             Operator::new,
         );
