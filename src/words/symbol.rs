@@ -64,6 +64,7 @@ impl Dot {
 pub enum SeparatorKind {
     Comma,
     Semicolon,
+    Dot,
 }
 
 impl SymbolKind for SeparatorKind {
@@ -71,6 +72,7 @@ impl SymbolKind for SeparatorKind {
         match self {
             SeparatorKind::Comma => ",",
             SeparatorKind::Semicolon => ";",
+            SeparatorKind::Dot => ".",
         }
     }
 }
@@ -145,25 +147,25 @@ pub enum OperatorKind {
 impl OperatorKind {
     pub fn all() -> &'static [OperatorKind] {
         &[
+            OperatorKind::FloorDivision,
+            OperatorKind::Exponent,
             OperatorKind::Plus,
             OperatorKind::Minus,
             OperatorKind::Times,
             OperatorKind::Divide,
             OperatorKind::Modulo,
-            OperatorKind::FloorDivision,
-            OperatorKind::Exponent,
+            OperatorKind::AndStrong,
+            OperatorKind::OrStrong,
             OperatorKind::And,
             OperatorKind::Or,
             OperatorKind::AndWeak,
             OperatorKind::OrWeak,
-            OperatorKind::AndStrong,
-            OperatorKind::OrStrong,
             OperatorKind::Equal,
             OperatorKind::NotEqual,
-            OperatorKind::Smaller,
-            OperatorKind::Greater,
             OperatorKind::SmallerEqual,
             OperatorKind::GreaterEqual,
+            OperatorKind::Smaller,
+            OperatorKind::Greater,
             OperatorKind::Assign,
         ]
     }

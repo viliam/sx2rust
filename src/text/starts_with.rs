@@ -45,6 +45,24 @@ impl Text {
             .unwrap_or(false)
     }
 
+    pub(crate) fn starts_with_dot(&mut self) -> bool {
+        self.next_char()
+            .map(|c| SeparatorKind::Dot.is_prefix(&c.to_string()))
+            .unwrap_or(false)
+    }
+
+    pub(crate) fn starts_with_command_postfix(&mut self) -> bool {
+        self.starts_with_bracket_open()
+    }
+
+    // pub(crate) fn starts_with_array_postfix(&mut self) -> bool {
+    //     self.starts_with_square_bracket_open()
+    // }
+    //
+    // pub(crate) fn starts_with_member_access_postfix(&mut self) -> bool {
+    //     self.starts_with_prefix_dot()
+    // }
+
     pub(crate) fn starts_with_variable(&mut self) -> bool {
         let pos = self.position;
         let res = if !self.starts_with_letter() {
@@ -58,4 +76,6 @@ impl Text {
         self.position = pos;
         res
     }
+
+
 }

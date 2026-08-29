@@ -4,7 +4,7 @@ use crate::parsers::word_parsers::WordExpressionParser;
 use crate::parsers::SxParser;
 use crate::sx_error::SxError;
 use crate::text::Text;
-use crate::words::expresions::{BracketExpression, Expression, ExpressionABC, Integer, Variable};
+use crate::words::expresions::{BracketExpression, Command, Expression, ExpressionABC, Integer, Variable};
 
 pub struct IntegerParser;
 
@@ -57,11 +57,13 @@ pub struct ExpressionParser;
 
 impl SxParser<Box<dyn ExpressionABC>> for ExpressionParser {
     fn read(&self, text: &mut Text) -> Result<Box<dyn ExpressionABC>, SxError> {
-        let expr = if text.starts_with_bracket_open() {
+        let mut expr = if text.starts_with_bracket_open() {
             BracketExpressionParser.read(text)?
         } else {
             SimpleExpressionParser.read(text)?
         };
+
+        // expr = ExpressionParser::read_postfixes(text, expr)?;
 
         if text.is_at_eof() {
             return Ok(expr);
@@ -89,6 +91,26 @@ impl SxParser<Box<dyn ExpressionABC>> for ExpressionParser {
     }
 }
 
+// impl ExpressionParser {
+//     fn read_postfixes(text: &mut Text, baseExpression: Box<dyn ExpressionABC>) -> Result<Box<dyn ExpressionABC>, SxError> {
+//         let mut expr = baseExpression;
+//         while !text.is_at_eof()
+//             && (text.starts_with_command_postfix())
+//             // || text.is_prefix_member_access_postfix()
+//             // || text.is_prefix_array_postfix())
+//         {
+//             expr = if text.starts_with_command_postfix() {
+//                 Command::new(expr, CommandPostfixParser::instance().read(text)?)
+//             }
+//             // } else if text.is_prefix_member_access_postfix() {
+//             //     Expression::MemberAccess(Box::new(expr), MemberAccessPostfixParser::instance().read(text)?)
+//             // } else {
+//             //     Expression::Array(Box::new(expr), ArrayPostfixParser::instance().read(text)?)
+//             // };
+//         }
+//     }
+// }
+
 pub struct BracketExpressionParser;
 
 impl SxParser<Box<dyn ExpressionABC>> for BracketExpressionParser {
@@ -100,6 +122,9 @@ impl SxParser<Box<dyn ExpressionABC>> for BracketExpressionParser {
         Ok(Box::new(BracketExpression::new(z1, ex, z2)))
     }
 }
+
+
+
 
 
 // pub struct OperatorExpressionParser;

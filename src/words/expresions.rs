@@ -180,3 +180,76 @@ impl ExpressionABC for BracketExpression {
         self.expression.exp_type()
     }
 }
+
+#[derive(Debug)]
+pub struct Parameters {
+    pub position: Position,
+    pub parameters: Vec<Box<dyn ExpressionABC>>
+}
+
+impl Parameters {
+    pub fn new(position: Position, parameters: Vec<Box<dyn ExpressionABC>>) -> Self {
+        Self { position, parameters }
+    }
+}
+
+impl WordABC for Parameters {
+    fn content(&self) -> String {
+        self.parameters.iter().map(|p| p.content()).collect::<Vec<_>>().join(",")
+    }
+
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+#[derive(Debug)]
+pub struct CommandPostfix {
+    pub bracket_open: Bracket,
+    pub parameters: Parameters,
+    pub bracket_close: Bracket,
+}
+
+impl CommandPostfix {
+    pub fn new(bracket_open: Bracket, parameters: Parameters, bracket_close: Bracket) -> Self {
+        Self { bracket_open, parameters, bracket_close }
+    }
+}
+
+impl WordABC for CommandPostfix {
+    fn content(&self) -> String {
+        format!("{}{}{}", self.bracket_open.content(), self.parameters.content(), self.bracket_close.content())
+    }
+
+    fn position(&self) -> Position {
+        self.bracket_open.position()
+    }
+}
+
+#[derive(Debug)]
+pub struct Command {
+    pub expression: Box<dyn ExpressionABC>,
+    pub command_postfix: CommandPostfix,
+}
+
+impl Command {
+    pub fn new(expression: Box<dyn ExpressionABC>, command_postfix: CommandPostfix) -> Self {
+        Self { expression, command_postfix }
+    }
+}
+
+impl WordABC for Command {
+    fn content(&self) -> String {
+        format!("{}{}", self.expression.content(), self.command_postfix.content())
+    }
+
+    fn position(&self) -> Position {
+        self.expression.position()
+    }
+}
+
+impl ExpressionABC for Command {
+    fn exp_type(&self) -> Result<ExpType, SxError> {
+        Ok(ExpType::Unknown)
+    }
+}

@@ -1,4 +1,3 @@
-use std::hash::Hash;
 use crate::enums::SxErrorType;
 use crate::parsers::SxParser;
 use crate::position::Position;
@@ -10,7 +9,7 @@ pub type ParseResult<T> = Result<T, SxError>;
 
 struct SymbolParser<T, K, F>
 where
-    K: SymbolKind + Copy + Eq + Hash,
+    K: SymbolKind + Copy + Eq,
     F: Fn(Position, K) -> T,
 {
     symbols: Vec<K>,
@@ -20,7 +19,7 @@ where
 
 impl<T, K, F> SymbolParser<T, K, F>
 where
-    K: SymbolKind + Copy + Eq + Hash,
+    K: SymbolKind + Copy + Eq,
     F: Fn(Position, K) -> T,
 {
     fn new(symbols: Vec<K>, exception_type: SxErrorType, create: F) -> Self {
@@ -34,14 +33,10 @@ where
     fn take_symbol(&self, text: &mut Text) -> ParseResult<K> {
         let remaining_text = text.take_end_of_line()?;
 
-        let mut tokens: Vec<&'static str> =
-            self.symbols.iter().map(|symbol| symbol.token()).collect();
-
-        tokens.sort_by_key(|token| std::cmp::Reverse(token.len()));
-
-        let symbol_token = tokens
-            .into_iter()
-            .find(|token| remaining_text.starts_with(token))
+        let symbol = self.symbols
+            .iter()
+            .copied()
+            .find(|symbol| remaining_text.starts_with(symbol.token()))
             .ok_or_else(|| {
                 SxError::create(
                     self.exception_type,
@@ -50,25 +45,15 @@ where
                 )
             })?;
 
-        text.position = text.position.add_x(symbol_token.len());
+        text.position = text.position.add_x(symbol.token().len());
 
-        self.symbols
-            .iter()
-            .copied()
-            .find(|symbol| symbol.token() == symbol_token)
-            .ok_or_else(|| {
-                SxError::create(
-                    self.exception_type,
-                    text.position.clone(),
-                    text.line(),
-                )
-            })
+        Ok(symbol)
     }
 }
 
 impl<T, K, F> SxParser<T> for SymbolParser<T, K, F>
 where
-    K: SymbolKind + Copy + Eq + Hash,
+    K: SymbolKind + Copy + Eq,
     F: Fn(Position, K) -> T,
 {
     fn read(&self, text: &mut Text) -> ParseResult<T> {
