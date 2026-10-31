@@ -81,6 +81,7 @@ impl SxParser<Box<dyn ExpressionABC>> for ExpressionParser {
             && !text.starts_with_operator()
             && !text.starts_with_comma()
             && !text.starts_with_bracket_closed()
+            && !text.starts_with_square_bracket_closed()
         {
             return Err(SxError::create(
                 SxErrorType::UncorrectedEndOfExpression,

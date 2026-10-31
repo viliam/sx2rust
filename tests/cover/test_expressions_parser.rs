@@ -98,29 +98,18 @@ fn test_read_array() {
         (vec!["[1, 2][0]".to_string()], ExpType::Unknown),
     ])
 }
-//
-// @Test
-// fun testReadArray() {
-// doTheTest(listOf(
-// listOf("[1, 2]") to ExpType.UNKNOWN,
-// listOf("[]") to ExpType.UNKNOWN,
-// listOf("arr[0]") to ExpType.UNKNOWN,
-// listOf("arr[i+1]") to ExpType.UNKNOWN,
-// listOf("arr[0][1]") to ExpType.UNKNOWN,
-// listOf("func(1, 2)[0]") to ExpType.UNKNOWN,
-// listOf("arr[0]+1") to ExpType.INT,
-// listOf("[1, 2][0]") to ExpType.UNKNOWN
-// ))
-// }
-//
-// @Test
-// fun testReadArrayNegative() {
-// doTheTestNegative(listOf(
-// listOf("arr[0") to SxErrorType.END_OF_FILE,
-// listOf("[1, 2") to SxErrorType.END_OF_FILE,
-// listOf("arr[0 1]") to SxErrorType.UNCORRECTED_END_OF_EXPRESSION
-// ))
-// }
+
+#[test]
+fn test_read_array_negative() {
+    do_the_test_negative( &[
+        (vec!["arr[0".to_string()], SxErrorType::UnexpectedPrefix),
+        (vec!["[1, 2".to_string()], SxErrorType::UnexpectedPrefix),
+        (vec!["arr[0 1]".to_string()], SxErrorType::UncorrectedEndOfExpression),
+    ])
+}
+
+
+
 //
 // @Test
 // fun testReadMemberAccessPositive() {
