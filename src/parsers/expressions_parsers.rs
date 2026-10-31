@@ -1,10 +1,10 @@
 use crate::enums::SxErrorType;
-use crate::parsers::symbols_parsers::{BracketParser, OperatorExpressionParser};
+use crate::parsers::symbols_parsers::{BracketParser, CommaParser, OperatorExpressionParser};
 use crate::parsers::word_parsers::WordExpressionParser;
 use crate::parsers::SxParser;
 use crate::sx_error::SxError;
 use crate::text::Text;
-use crate::words::expresions::{BracketExpression, Command, Expression, ExpressionABC, Integer, Variable};
+use crate::words::expresions::{BracketExpression, Command, CommandPostfix, Array, ArrayPostfix, Expression, ExpressionABC, Integer, Parameters, Variable};
 
 pub struct IntegerParser;
 
@@ -59,11 +59,13 @@ impl SxParser<Box<dyn ExpressionABC>> for ExpressionParser {
     fn read(&self, text: &mut Text) -> Result<Box<dyn ExpressionABC>, SxError> {
         let mut expr = if text.starts_with_bracket_open() {
             BracketExpressionParser.read(text)?
+        } else if text.starts_with_square_bracket_open() {
+            Box::new(ArrayPostfixParser.read(text)?)
         } else {
             SimpleExpressionParser.read(text)?
         };
 
-        // expr = ExpressionParser::read_postfixes(text, expr)?;
+        expr = ExpressionParser::read_postfixes(text, expr)?;
 
         if text.is_at_eof() {
             return Ok(expr);
@@ -91,25 +93,26 @@ impl SxParser<Box<dyn ExpressionABC>> for ExpressionParser {
     }
 }
 
-// impl ExpressionParser {
-//     fn read_postfixes(text: &mut Text, baseExpression: Box<dyn ExpressionABC>) -> Result<Box<dyn ExpressionABC>, SxError> {
-//         let mut expr = baseExpression;
-//         while !text.is_at_eof()
-//             && (text.starts_with_command_postfix())
-//             // || text.is_prefix_member_access_postfix()
-//             // || text.is_prefix_array_postfix())
-//         {
-//             expr = if text.starts_with_command_postfix() {
-//                 Command::new(expr, CommandPostfixParser::instance().read(text)?)
-//             }
-//             // } else if text.is_prefix_member_access_postfix() {
-//             //     Expression::MemberAccess(Box::new(expr), MemberAccessPostfixParser::instance().read(text)?)
-//             // } else {
-//             //     Expression::Array(Box::new(expr), ArrayPostfixParser::instance().read(text)?)
-//             // };
-//         }
-//     }
-// }
+impl ExpressionParser {
+    fn read_postfixes(text: &mut Text, baseExpression: Box<dyn ExpressionABC>) -> Result<Box<dyn ExpressionABC>, SxError> {
+        let mut expr = baseExpression;
+        while !text.is_at_eof()
+            && (text.starts_with_command_postfix()
+            // || text.is_prefix_member_access_postfix()
+            || text.starts_with_array_postfix())
+        {
+            expr = if text.starts_with_command_postfix() {
+                Box::new(Command::new(expr, CommandPostfixParser.read(text)?))
+            // }
+            // } else if text.is_prefix_member_access_postfix() {
+            //     Expression::MemberAccess(Box::new(expr), MemberAccessPostfixParser::instance().read(text)?)
+            } else {
+                Box::new( Array::new(expr, ArrayPostfixParser.read(text)?))
+            }
+        }
+        return Ok(expr);
+    }
+}
 
 pub struct BracketExpressionParser;
 
@@ -123,39 +126,72 @@ impl SxParser<Box<dyn ExpressionABC>> for BracketExpressionParser {
     }
 }
 
+pub struct ParameterParser;
 
+impl SxParser<Parameters> for ParameterParser {
+    fn read(&self, text: &mut Text) -> Result<Parameters, SxError> {
+        let mut parameters :Vec<Box<dyn ExpressionABC>> = Vec::new();
+        let pos = text.position;
 
+        loop {
+            parameters.push(ExpressionParser.read(text)?);
+            if text.starts_with_bracket_closed() {
+                return Ok(Parameters::new(pos, parameters))
+            }
+            if !text.starts_with_comma() {
+                return Err(SxError::create(
+                    SxErrorType::ExpectedParameter,
+                    text.position,
+                    text.line(),
+                ));
+            }
 
+            CommaParser.read(text)?;
+        }
+    }
+}
 
-// pub struct OperatorExpressionParser;
+pub struct CommandPostfixParser;
+
+impl SxParser<CommandPostfix> for CommandPostfixParser {
+    fn read(&self, text: &mut Text) -> Result<CommandPostfix, SxError> {
+        let bracket_open = BracketParser.read(text)?;
+        let parameters = ParameterParser.read(text)?;
+        let bracket_close = BracketParser.read(text)?;
+        Ok(CommandPostfix::new(bracket_open, parameters, bracket_close))
+    }
+}
+
+pub struct ArrayPostfixParser;
+
+impl SxParser<ArrayPostfix> for ArrayPostfixParser {
+    fn read(&self, text: &mut Text) -> Result<ArrayPostfix, SxError> {
+        let bracket_open = BracketParser.read(text)?;
+        let mut elements :Vec<Box<dyn ExpressionABC>> = Vec::new();
+
+        while !text.starts_with_square_bracket_closed() {
+            elements.push( ExpressionParser.read(text)?);
+            if text.starts_with_comma() {
+                CommaParser.read(text)?;
+            }
+        }
+        let bracket_close = BracketParser.read(text)?;
+        Ok(ArrayPostfix::new(bracket_open, elements, bracket_close))
+    }
+}
+
+// class ArrayPostfixParser : SxParser<ArrayPostfix> {
 //
-// impl SxParser<Operator> for OperatorExpressionParser {
-//     fn read(&self, text: &mut Text) -> Result<Operator, SxError> {
-//         let poz = match text.next_char_position() {
-//             Some(position) => position,
-//             None => {
-//                 return Err(SxError::create_no_msg(
-//                     SxErrorType::EndOfFile,
-//                     text.position,
-//                 ));
-//             }
-//         };
+//     val bracketOpen = BracketParser.read(text)
 //
-//         let s = text.take_end_of_line()?;
-//         let mut symbols: Vec<_> = SymbolGroupEnum::OpExp.members().into_iter().collect();
-//         symbols.sort_by_key(|s| std::cmp::Reverse(s.as_str().len()));
-//
-//         for sym in symbols {
-//             if s.starts_with(sym.as_str()) {
-//                 text.position = poz.add_x(sym.as_str().len());
-//                 return Ok(Operator::new(poz, sym));
-//             }
-//         }
-//
-//         Err(SxError::create(
-//             SxErrorType::ExpectedOperator,
-//             text.position,
-//             text.line(),
-//         ))
+//     val elements = mutableListOf<ExpressionAbstract>()
+//     while  (!text.startsWithSquareBracketClose()) {
+//         elements.add(ExpressionParser.i().read(text))
+//         if (text.startsWithComma() )
+//             CommaParser.read(text)
 //     }
+//
+//     val bracketClose = BracketParser.read(text)
+//     return ArrayPostfix(bracketOpen, elements, bracketClose)
+//
 // }

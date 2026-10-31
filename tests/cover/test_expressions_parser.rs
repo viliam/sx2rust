@@ -85,11 +85,19 @@ fn test_read_commands() {
     ])
 }
 
-// @Test
-// fun testReadCommands() {
-// doTheTest(listOf(
-// ))
-// }
+#[test]
+fn test_read_array() {
+    do_the_test(  &[
+        (vec!["[1, 2]".to_string()], ExpType::Unknown),
+        (vec!["[]".to_string()], ExpType::Unknown),
+        (vec!["arr[0]".to_string()], ExpType::Unknown),
+        (vec!["arr[i+1]".to_string()], ExpType::Unknown),
+        (vec!["arr[0][1]".to_string()], ExpType::Unknown),
+        (vec!["func(1, 2)[0]".to_string()], ExpType::Unknown),
+        (vec!["arr[0]+1".to_string()], ExpType::Int),
+        (vec!["[1, 2][0]".to_string()], ExpType::Unknown),
+    ])
+}
 //
 // @Test
 // fun testReadArray() {

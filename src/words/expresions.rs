@@ -238,6 +238,79 @@ impl Command {
     }
 }
 
+#[derive(Debug)]
+pub struct ArrayPostfix {
+    pub bracket_open: Bracket,
+    pub elements: Vec<Box<dyn ExpressionABC>>,
+    pub bracket_close: Bracket,
+}
+
+impl ArrayPostfix {
+    pub fn new(bracket_open: Bracket, elements: Vec<Box<dyn ExpressionABC>>, bracket_close: Bracket) -> Self {
+        Self { bracket_open, elements, bracket_close }
+    }
+}
+
+impl WordABC for ArrayPostfix {
+
+    fn content(&self) -> String {
+        format!("{}{}{}", self.bracket_open.content(),
+                self.elements.iter().map(|e| e.content()).collect::<Vec<_>>().join(","),
+                self.bracket_close.content())
+    }
+
+    fn position(&self) -> Position {
+        self.bracket_open.position()
+    }
+}
+
+impl ExpressionABC for ArrayPostfix {
+    fn exp_type(&self) -> Result<ExpType, SxError> {
+        Ok(ExpType::Unknown)
+    }
+}
+
+#[derive(Debug)]
+pub struct Array {
+    pub expression: Box<dyn ExpressionABC>,
+    pub array_postfix: ArrayPostfix,
+}
+
+impl Array {
+    pub fn new(expression: Box<dyn ExpressionABC>, array_postfix: ArrayPostfix) -> Self {
+        Self { expression, array_postfix }
+    }
+}
+
+impl WordABC for Array {
+    fn content(&self) -> String {
+        format!("{}{}", self.expression.content(), self.array_postfix.content())
+
+    }
+
+    fn position(&self) -> Position {
+        self.expression.position()
+    }
+}
+
+impl ExpressionABC for Array {
+    fn exp_type(&self) -> Result<ExpType, SxError> {
+        Ok(ExpType::Unknown)
+    }
+
+
+}
+// class Array(val expression: ExpressionAbstract, val arrayPostfix: ArrayPostfix) : ExpressionAbstract(expression.position) {
+// override val expType: ExpType get() = ExpType.UNKNOWN
+// override val content: String get() = expression.content + arrayPostfix.content
+// }
+
+
+// class MemberAccess(val expression: ExpressionAbstract, val memberAccessPostfix: MemberAccessPostfix): ExpressionAbstract(expression.position) {
+// override val expType: ExpType get() = ExpType.UNKNOWN
+// override val content: String get() = expression.content + memberAccessPostfix.content
+// }
+
 impl WordABC for Command {
     fn content(&self) -> String {
         format!("{}{}", self.expression.content(), self.command_postfix.content())

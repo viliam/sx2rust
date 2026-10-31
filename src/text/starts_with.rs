@@ -39,6 +39,18 @@ impl Text {
             .unwrap_or(false)
     }
 
+    pub(crate) fn starts_with_square_bracket_open(&mut self) -> bool {
+        self.next_char()
+            .map(|c| BracketKind::SquareOpen.is_prefix(&*c.to_string()))
+            .unwrap_or(false)
+    }
+
+    pub(crate) fn starts_with_square_bracket_closed(&mut self) -> bool {
+        self.next_char()
+            .map(|c| BracketKind::SquareClose.is_prefix(&c.to_string()))
+            .unwrap_or(false)
+    }
+
     pub(crate) fn starts_with_comma(&mut self) -> bool {
         self.next_char()
             .map(|c| SeparatorKind::Comma.is_prefix(&c.to_string()))
@@ -55,10 +67,10 @@ impl Text {
         self.starts_with_bracket_open()
     }
 
-    // pub(crate) fn starts_with_array_postfix(&mut self) -> bool {
-    //     self.starts_with_square_bracket_open()
-    // }
-    //
+    pub(crate) fn starts_with_array_postfix(&mut self) -> bool {
+        self.starts_with_square_bracket_open()
+    }
+
     // pub(crate) fn starts_with_member_access_postfix(&mut self) -> bool {
     //     self.starts_with_prefix_dot()
     // }
