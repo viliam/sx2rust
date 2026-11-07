@@ -1,10 +1,10 @@
 use crate::enums::SxErrorType;
-use crate::parsers::symbols_parsers::{BracketParser, CommaParser, OperatorExpressionParser};
+use crate::parsers::symbols_parsers::{BracketParser, CommaParser, DotParser, OperatorExpressionParser};
 use crate::parsers::word_parsers::WordExpressionParser;
 use crate::parsers::SxParser;
 use crate::sx_error::SxError;
 use crate::text::Text;
-use crate::words::expresions::{BracketExpression, Command, CommandPostfix, Array, ArrayPostfix, Expression, ExpressionABC, Integer, Parameters, Variable};
+use crate::words::expresions::{BracketExpression, Command, CommandPostfix, Array, ArrayPostfix, Expression, ExpressionABC, Integer, Parameters, Variable, MemberAccess, MemberAccessPostfix};
 
 pub struct IntegerParser;
 
@@ -95,18 +95,17 @@ impl SxParser<Box<dyn ExpressionABC>> for ExpressionParser {
 }
 
 impl ExpressionParser {
-    fn read_postfixes(text: &mut Text, baseExpression: Box<dyn ExpressionABC>) -> Result<Box<dyn ExpressionABC>, SxError> {
-        let mut expr = baseExpression;
+    fn read_postfixes(text: &mut Text, base_bxpression: Box<dyn ExpressionABC>) -> Result<Box<dyn ExpressionABC>, SxError> {
+        let mut expr = base_bxpression;
         while !text.is_at_eof()
             && (text.starts_with_command_postfix()
-            // || text.is_prefix_member_access_postfix()
+            || text.starts_with_member_access_postfix()
             || text.starts_with_array_postfix())
         {
             expr = if text.starts_with_command_postfix() {
                 Box::new(Command::new(expr, CommandPostfixParser.read(text)?))
-            // }
-            // } else if text.is_prefix_member_access_postfix() {
-            //     Expression::MemberAccess(Box::new(expr), MemberAccessPostfixParser::instance().read(text)?)
+            } else if text.starts_with_member_access_postfix() {
+                Box::new(MemberAccess::new(expr, MemberAccessPostfixParser.read(text)?))
             } else {
                 Box::new( Array::new(expr, ArrayPostfixParser.read(text)?))
             }
@@ -181,18 +180,12 @@ impl SxParser<ArrayPostfix> for ArrayPostfixParser {
     }
 }
 
-// class ArrayPostfixParser : SxParser<ArrayPostfix> {
-//
-//     val bracketOpen = BracketParser.read(text)
-//
-//     val elements = mutableListOf<ExpressionAbstract>()
-//     while  (!text.startsWithSquareBracketClose()) {
-//         elements.add(ExpressionParser.i().read(text))
-//         if (text.startsWithComma() )
-//             CommaParser.read(text)
-//     }
-//
-//     val bracketClose = BracketParser.read(text)
-//     return ArrayPostfix(bracketOpen, elements, bracketClose)
-//
-// }
+pub struct MemberAccessPostfixParser;
+
+impl SxParser<MemberAccessPostfix> for MemberAccessPostfixParser {
+    fn read(&self, text: &mut Text) -> Result<MemberAccessPostfix, SxError> {
+        let dot = DotParser.read(text)?;
+        let name = WordExpressionParser.read(text)?;
+        Ok(MemberAccessPostfix::new(dot, name))
+    }
+}

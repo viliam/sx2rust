@@ -60,6 +60,12 @@ impl Dot {
     }
 }
 
+impl WordABC for Dot {
+    fn content(&self) -> String { self.symbol.content.clone() }
+
+    fn position(&self) -> Position { self.symbol.position() }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SeparatorKind {
     Comma,

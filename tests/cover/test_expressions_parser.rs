@@ -108,6 +108,43 @@ fn test_read_array_negative() {
     ])
 }
 
+#[test]
+fn test_read_member_access_positive() {
+    do_the_test( &[
+        (vec!["obj.name".to_string()], ExpType::Unknown),
+        (vec!["a.b.c".to_string()], ExpType::Unknown),
+        (vec!["a.b.c.d".to_string()], ExpType::Unknown),
+        (vec!["obj.method(1)".to_string()], ExpType::Unknown),
+        (vec!["obj.method(1, 2)".to_string()], ExpType::Unknown),
+        (vec!["obj.arr[0]".to_string()], ExpType::Unknown),
+        (vec!["arr[0].name".to_string()], ExpType::Unknown),
+        (vec!["func(1).name".to_string()], ExpType::Unknown),
+        (vec!["obj.a.b(1).c[0].d".to_string()], ExpType::Unknown),
+        (vec!["obj.value+1".to_string()], ExpType::Int),
+        (vec!["obj.value+other.value".to_string()], ExpType::Int),
+        (vec!["obj.x>obj.y".to_string()], ExpType::Comparison),
+        (vec!["(obj.name)".to_string()], ExpType::Unknown),
+        (vec!["obj.a and obj.b".to_string()], ExpType::Bool),
+    ])
+}
+
+#[test]
+fn test_read_member_access_negative() {
+    do_the_test_negative( &[
+        (vec!["obj.".to_string()], SxErrorType::ExpectedToken),
+        (vec!["obj.name.".to_string()], SxErrorType::ExpectedToken),
+        (vec!["obj.+name".to_string()], SxErrorType::ExpectedToken),
+    ])
+}
+//
+// @Test
+// fun testReadMemberAccessNegative() {
+// doTheTestNegative(listOf(
+// listOf("obj.") to SxErrorType.EXPECTED_TOKEN,
+// listOf("obj.name.") to SxErrorType.EXPECTED_TOKEN,
+// listOf("obj.+name") to SxErrorType.EXPECTED_TOKEN,
+// ))
+// }
 
 
 //

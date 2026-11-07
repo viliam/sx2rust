@@ -71,9 +71,9 @@ impl Text {
         self.starts_with_square_bracket_open()
     }
 
-    // pub(crate) fn starts_with_member_access_postfix(&mut self) -> bool {
-    //     self.starts_with_prefix_dot()
-    // }
+    pub(crate) fn starts_with_member_access_postfix(&mut self) -> bool {
+        self.starts_with_dot()
+    }
 
     pub(crate) fn starts_with_variable(&mut self) -> bool {
         let pos = self.position;

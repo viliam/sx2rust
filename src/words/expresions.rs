@@ -1,7 +1,7 @@
 use crate::sx_error::SxError;
 use crate::enums::ExpType;
 use crate::position::Position;
-use crate::words::symbol::{Bracket, Operator};
+use crate::words::symbol::{Bracket, Dot, Operator};
 use crate::words::word::{Word, WordABC};
 
 pub trait ExpressionABC: WordABC {
@@ -297,19 +297,55 @@ impl ExpressionABC for Array {
     fn exp_type(&self) -> Result<ExpType, SxError> {
         Ok(ExpType::Unknown)
     }
-
-
 }
-// class Array(val expression: ExpressionAbstract, val arrayPostfix: ArrayPostfix) : ExpressionAbstract(expression.position) {
-// override val expType: ExpType get() = ExpType.UNKNOWN
-// override val content: String get() = expression.content + arrayPostfix.content
-// }
 
+#[derive(Debug)]
+pub struct MemberAccessPostfix {
+    pub dot: Dot,
+    pub name: Word,
+}
 
-// class MemberAccess(val expression: ExpressionAbstract, val memberAccessPostfix: MemberAccessPostfix): ExpressionAbstract(expression.position) {
-// override val expType: ExpType get() = ExpType.UNKNOWN
-// override val content: String get() = expression.content + memberAccessPostfix.content
-// }
+impl MemberAccessPostfix {
+    pub fn new(dot: Dot, name: Word) -> Self {
+        Self { dot, name }
+    }
+}
+
+impl WordABC for MemberAccessPostfix {
+    fn content(&self) -> String {
+        format!("{}{}", self.dot.content(),
+                self.name.content())
+    }
+
+    fn position(&self) -> Position { self.dot.position()}
+}
+
+#[derive(Debug)]
+pub struct MemberAccess {
+    pub expression: Box<dyn ExpressionABC>,
+    pub member_access_postfix: MemberAccessPostfix,
+}
+
+impl MemberAccess {
+    pub fn new(expression: Box<dyn ExpressionABC>, member_access_postfix: MemberAccessPostfix) -> Self {
+        Self { expression, member_access_postfix }
+    }
+}
+
+impl ExpressionABC for MemberAccess {
+    fn exp_type(&self) -> Result<ExpType, SxError> {
+        Ok(ExpType::Unknown)
+    }
+}
+
+impl WordABC for MemberAccess {
+    fn content(&self) -> String {
+        format!("{}{}", self.expression.content(),
+                self.member_access_postfix.content())
+    }
+
+    fn position(&self) -> Position { self.expression.position() }
+}
 
 impl WordABC for Command {
     fn content(&self) -> String {
